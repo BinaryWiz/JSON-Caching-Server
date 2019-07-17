@@ -39,15 +39,25 @@ def start():
                     return entry.data
 
     elif request.method == "POST":
-        with open('Cache/cache1.json', 'a+') as f:
-            if not f.read(1):
-                json.dump({"cache_data": []}, f)
+        original_json = None
+        try: 
+            with open('Cache/cache1.json', 'a+') as f:
+                f.seek(0)
+                if not f.read(1):
+                    json.dump({"cache_data": []}, f)
 
-        with open('Cache/cache1.json') as f:
-            data = request.data
+            with open('Cache/cache1.json', 'r') as f:
+                original_json = json.load(f)
+
+            with open('Cache/cache1.json', 'w') as f:
+                data = request.json
+                original_json["cache_data"].append(data)
+                json.dump(original_json, f)
             
+            return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
 
-        return str({"hi": "HI"})
+        except:
+            return json.dumps({'success':False}), 500, {'ContentType':'application/json'}
 
     elif request.method == "PUT":
         data = request.data
