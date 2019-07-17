@@ -1,8 +1,9 @@
 from flask import Flask, request
 import flask
 import time
-import json 
-
+import json
+from datetime import timedelta
+from apscheduler.schedulers.background import BackgroundScheduler
 # Sample data in the cache
 """
 cache_data {
@@ -24,6 +25,25 @@ cache_data {
     }
 }
 """
+
+MINUTE_INTERVAL = 10
+def update_json_time():
+    json_contents = None
+    try:
+        with open("Cache/cache1.json") as f:
+            json_contents = json.load(f)
+
+        for entry in json_contents["cache_data"]:
+            entry["time"] += MINUTE_INTERVAL
+            print(entry["time"])
+            if (int(entry["time"]) >= 60):
+                json_contents["cache_data"].remove(entry)
+        
+        with open("Cache/cache1.json", "w") as f:
+            json.dump(json_contents, f)
+
+    except Exception as e:
+        print(e)
 
 app = Flask(__name__)
 
@@ -57,7 +77,7 @@ def start():
 
             with open('Cache/cache1.json', 'w') as f:
                 data = request.json
-                print(json.loads(json.dumps(data)))
+                data["time"] = 0
                 original_json["cache_data"].append(json.loads(json.dumps(data)))
                 json.dump(original_json, f)
             
@@ -75,6 +95,7 @@ def start():
 
             with open('Cache/cache1.json', 'w') as f:
                 data = request.json
+                data["time"] = 0
                 found = False
                 for index, entry in enumerate(original_json["cache_data"]):
                     if entry["item_model"].lower() == data["item_model"].lower():
@@ -96,4 +117,7 @@ def start():
             
 
 if __name__ == "__main__":
-    app.run(host="localhost", threaded=True, debug = True)
+    scheduler = BackgroundScheduler()
+    job = scheduler.add_job(update_json_time, 'interval', minutes=MINUTE_INTERVAL)
+    scheduler.start()
+    app.run(host="localhost", threaded=True, debug = True, use_reloader=False)
