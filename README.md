@@ -1,9 +1,8 @@
-# Price Assist Caching Server
+# JSON Caching Server
 
-The Price Assist Caching Server is meant to alleviate some of the more I/O bound and memory expensive tasks on the web scraping part of the server. As the name suggests, it wil cache the response from the server for a set amount of time, which will allow other users to use the same data.
+The JSON Caching Server is meant to alleviate some of the more memory and process expensive tasks, such as web scraping, on a server. As the name suggests, it wil cache the response from a server for a set amount of time in a JSON format, and when it is "expired", it will be deleted. The user can also edit what is in the server via the RESTful-like API.
 
 # Goals
-* Be able to set up an efficient way of storing item models associated with the retaialer information (a JSON)
 * Track how long each entry in the server has been stored for
 * Delete an entry that is longer than a set *x* amount time
   * This means that data will be updated when it most likely has changed/is outdated
