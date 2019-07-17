@@ -31,12 +31,18 @@ app = Flask(__name__)
 @app.route('/', methods=['PUT', 'GET', 'POST'])
 def start():
     if request.method == "GET":
-        item_model = request.args.get("item_model")
-        with open("Cache/cache1.json", "r") as cache:
-            cache = json.load(cache)
-            for entry in cache["cache_data"]:
-                if (entry.item_model_number) == item_model:
-                    return entry.data
+        try:
+            item_model = request.args.get("item_model")
+            with open("Cache/cache1.json", "r") as cache:
+                cache = json.load(cache)
+                for entry in cache["cache_data"]:
+                    if (entry["item_model"]) == item_model:
+                        return json.dumps(entry)
+
+            return json.dumps({"found": False})
+
+        except:
+            return json.dumps({'success':False}), 404, {'ContentType':'application/json'}
 
     elif request.method == "POST":
         original_json = None
@@ -54,18 +60,38 @@ def start():
                 original_json["cache_data"].append(data)
                 json.dump(original_json, f)
             
-            return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
+            return json.dumps({'success':True}), 201, {'ContentType':'application/json'} 
 
         except:
             return json.dumps({'success':False}), 500, {'ContentType':'application/json'}
 
     elif request.method == "PUT":
-        data = request.data
-        with open("Cache/cache1.json", "a+") as cache:
-            cache = json.load(cache)
-            for entry in cache["cache_data"]:
-                if (entry.item_model_number) == data.item_model:
-                    entry.data = data.data
+        original_json = None
+        try: 
+            with open('Cache/cache1.json', 'r') as f:
+                original_json = json.load(f)
+
+            with open('Cache/cache1.json', 'w') as f:
+                data = request.json
+                found = False
+                for index, entry in enumerate(original_json["cache_data"]):
+                    if entry["item_model"].lower() == data["item_model"].lower():
+                        found = True
+                        original_json["cache_data"][index] = data
+                        
+                json.dump(original_json, f)
+                if not found:
+                    return json.dumps({'success': False}, 404)
+    
+            return json.dumps({'success':True}), 200
+
+        except:
+            with open('Cache/cache1.json', 'w') as f:
+                json.dump(original_json, f)
+                
+            return json.dumps({'success':False}), 500
+
+            
 
 if __name__ == "__main__":
     app.run(host="localhost", debug = True)
