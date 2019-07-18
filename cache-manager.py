@@ -28,6 +28,7 @@ cache_data {
 
 MINUTE_INTERVAL = 10
 def update_json_time():
+    start_time = time.time()
     json_contents = None
     try:
         with open("Cache/cache1.json") as f:
@@ -35,7 +36,6 @@ def update_json_time():
 
         for entry in json_contents["cache_data"]:
             entry["time"] += MINUTE_INTERVAL
-            print(entry["time"])
             if (int(entry["time"]) >= 60):
                 json_contents["cache_data"].remove(entry)
         
@@ -44,6 +44,7 @@ def update_json_time():
 
     except Exception as e:
         print(e)
+    
 
 app = Flask(__name__)
 
@@ -105,7 +106,7 @@ def start():
                 json.dump(original_json, f)
                 if not found:
                     return json.dumps({'success': False}, 404)
-    
+
             return json.dumps({'success':True}), 200
 
         except:
@@ -120,4 +121,4 @@ if __name__ == "__main__":
     scheduler = BackgroundScheduler()
     job = scheduler.add_job(update_json_time, 'interval', minutes=MINUTE_INTERVAL)
     scheduler.start()
-    app.run(host="localhost", threaded=True, debug = True, use_reloader=False)
+    app.run(host="localhost", port=5001, threaded=True, debug = True, use_reloader=False)
