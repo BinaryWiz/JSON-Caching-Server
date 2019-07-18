@@ -9,5 +9,5 @@ The JSON Caching Server is meant to alleviate some of the more memory and proces
 * Free up system resources by alleviated stress on the webscraping server
 
 # Requirements
-* Flask server for handling GET, PUT, POST, and DELETE requests and serving as the backbone of the project
+* Flask server for handling GET, PUT and POST requests and serving as the backbone of the project
 * JSON for storing the data
