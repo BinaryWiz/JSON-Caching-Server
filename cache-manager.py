@@ -26,7 +26,7 @@ cache_data {
 }
 """
 
-MINUTE_INTERVAL = 10
+MINUTE_INTERVAL = 0.5
 def update_json_time():
     start_time = time.time()
     json_contents = None
