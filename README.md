@@ -11,3 +11,6 @@ The JSON Caching Server is meant to alleviate some of the more memory and proces
 # Requirements
 * Flask server for handling GET, PUT and POST requests and serving as the backbone of the project
 * JSON for storing the data
+
+# Updates
+* Added uWSGI support and set up the files to be easily used with an NGINX or Apache server
