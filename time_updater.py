@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import time
 from timeloop import Timeloop
 from datetime import timedelta

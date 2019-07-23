@@ -1,0 +1,3 @@
+[2019-07-23 17:34:18,631] [timeloop] [INFO] Starting Timeloop..
+[2019-07-23 17:34:18,632] [timeloop] [INFO] Registered job <function update_json_time at 0x7fb5c23558c8>
+[2019-07-23 17:34:18,632] [timeloop] [INFO] Timeloop now started. Jobs will run based on the interval set
