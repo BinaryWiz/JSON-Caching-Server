@@ -1,8 +1,9 @@
 import time
+import json
 from timeloop import Timeloop
 from datetime import timedelta
 
-MINUTE_INTERVAL = 10
+MINUTE_INTERVAL = 1
 
 t1 = Timeloop()
 
