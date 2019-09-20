@@ -2,12 +2,14 @@ from flask import Flask, request
 import flask
 import time
 import json
+import os
+import plyvel
 # Sample data in the cache
 """
 cache_data {
     {
         {
-            'item_model': 'BX80684I99900K;
+            'identifier': 'BX80684I99900K;
             'amazon_data': ['Amazon', '$484.99', 'https://www.amazon.com/s?k=BX80684I99900K&i=electronics&rh=n%3A172282&qid=1563197272&ref=sr_hi_1'], 
             'bestbuy_data': [], 
             'newegg_data': ['Newegg', '525', '#'], 
@@ -23,77 +25,35 @@ cache_data {
     }
 }
 """
-
+db = None
 app = Flask(__name__)
 
-@app.route('/', methods=['PUT', 'GET', 'POST'])
+@app.route('/', methods=['PUT', 'GET', 'DELETE'])
 def start():
     if request.method == "GET":
         try:
-            item_model = request.args.get("item_model")
-            with open("Cache/cache1.json", "r") as cache:
-                cache = json.load(cache)
-                for entry in cache["cache_data"]:
-                    if (entry["item_model"]) == item_model:
-                        entry["success"] = True
-                        return json.dumps(entry), 200
-
-            return json.dumps({"success": False}), 404
+            print(db.get(b'BX80684I99900K'))
 
         except:
             return json.dumps({'success':False}), 404
 
-    elif request.method == "POST":
-        original_json = None
-        try: 
-            with open('Cache/cache1.json', 'a+') as f:
-                f.seek(0)
-                if not f.read(1):
-                    json.dump({"cache_data": []}, f)
-
-            with open('Cache/cache1.json', 'r') as f:
-                original_json = json.load(f)
-
-            with open('Cache/cache1.json', 'w') as f:
-                data = request.json
-                data["time"] = 0
-                original_json["cache_data"].append(json.loads(json.dumps(data)))
-                json.dump(original_json, f)
-            
-            return json.dumps({'success':True}), 201
-
-        except Exception as e:
-            print(e)
-            return json.dumps({'success':False}), 500
-
     elif request.method == "PUT":
-        original_json = None
-        try: 
-            with open('Cache/cache1.json', 'r') as f:
-                original_json = json.load(f)
+        """
+        PUT request will have just the regular JSON response stored
+        in the leveldb database
+        """
+        response = request.json
 
-            with open('Cache/cache1.json', 'w') as f:
-                data = request.json
-                data["time"] = 0
-                found = False
-                for index, entry in enumerate(original_json["cache_data"]):
-                    if entry["item_model"].lower() == data["item_model"].lower():
-                        found = True
-                        original_json["cache_data"][index] = data
+        # The key that will be stored in the database
+        identifier = response['item_model']
+        db.put(bytes(identifier, encoding='utf-8'), bytes(json.dumps(response), encoding='utf-8'))
 
-                json.dump(original_json, f)
-                if not found:
-                    return json.dumps({'success': False}, 404)
-
-            return json.dumps({'success':True}), 200
-
-        except:
-            with open('Cache/cache1.json', 'w') as f:
-                json.dump(original_json, f)
-                
-            return json.dumps({'success':False}), 500
-
-            
+    elif request.method == "DELETE":
+        pass 
 
 if __name__ == "__main__":
-    app.run(host="localhost", port=5001, threaded=True, use_reloader=False)
+    if not os.path.exists(r'./databases'):
+        os.makedirs(r'./databases')
+
+    db = plyvel.DB('databases/db', create_if_missing=True)
+    app.run(host="localhost", port=5001, threaded=True)

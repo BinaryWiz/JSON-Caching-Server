@@ -5,7 +5,7 @@ user_input = input("Would you like to GET PUT or POST? ")
 
 if user_input == "GET":
     r = requests.get(url = "http://localhost:5001?item_model=BX80684I99900K",) 
-    print(r.json())
+    #print(r.json())
 
 elif user_input == "POST":
     data = requests.get("http://timeless-apps.com/api/query?retailer=Newegg&price=525&item_model=BX80684I99900K&return_type=json")
