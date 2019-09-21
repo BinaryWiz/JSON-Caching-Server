@@ -9,7 +9,8 @@ while True:
         print(r.json())
         
     elif user_input.upper() == "PUT":
-        data = requests.get("http://timeless-apps.com/api/query?retailer=Newegg&price=525&item_model=BX80684I99900K&return_type=json")
+        data = requests.get("http://localhost:5000/api/query?retailer=Newegg&price=525&item_model=BX80684I99900K&return_type=json")
+        print('something')
         load = data.json()
         print(load)
         r = requests.put(url = "http://localhost:5001/", json = load) 

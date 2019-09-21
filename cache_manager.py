@@ -7,8 +7,13 @@ import plyvel
 import requests
 from apscheduler.schedulers.background import BackgroundScheduler
 
-request_db = None
-time_db = None
+# Set up databases
+if not os.path.exists(r'./databases'):
+    os.makedirs(r'./databases')
+
+request_db = plyvel.DB('databases/request_db', create_if_missing=True)
+time_db = plyvel.DB('databases/time_db', create_if_missing=True)
+
 app = Flask(__name__)
 TIME_DELETIION = 30
 
@@ -79,6 +84,7 @@ def start():
             return json.dumps({'success': True}), 204
         
         except Exception as e:
+            print('something')
             print(str(e))
             return json.dumps({'success': False, 'message': str(e)}), 500
 
@@ -97,9 +103,4 @@ def start():
             return json.dumps({'success': False, 'message': str(e)}), 500
 
 if __name__ == "__main__":
-    if not os.path.exists(r'./databases'):
-        os.makedirs(r'./databases')
-
-    request_db = plyvel.DB('databases/request_db', create_if_missing=True)
-    time_db = plyvel.DB('databases/time_db', create_if_missing=True)
     app.run(host="localhost", port=5001, threaded=True)
