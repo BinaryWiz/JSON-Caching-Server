@@ -4,6 +4,7 @@ import time
 import json
 import os
 import plyvel
+import requests
 # Sample data in the cache
 """
 cache_data {
@@ -29,6 +30,25 @@ cache_data {
 request_db = None
 time_db = None
 app = Flask(__name__)
+TIME_DELETIION = 60
+
+from apscheduler.schedulers.background import BackgroundScheduler
+from flask import Flask
+
+def time_updater():
+    """ Function for test purposes. """
+    for key, value in time_db:
+        if value == bytes([TIME_DELETIION]):
+            time_db.delete(key)
+            requests.delete('http://localhost:5001/', json={'identifier': str(key)})
+
+        else:
+            time_db.put(key, bytes([int.from_bytes(value, byteorder='big') + int.from_bytes([1], byteorder='big')])) 
+
+
+sched = BackgroundScheduler(daemon=True)
+sched.add_job(time_updater,'interval',minutes=1)
+sched.start()
 
 @app.route('/', methods=['PUT', 'GET', 'DELETE'])
 def start():
@@ -68,7 +88,7 @@ def start():
             # The key that will be stored in the database
             identifier = response['identifier']
             request_db.put(bytes(identifier, encoding='utf-8'), bytes(json.dumps(response), encoding='utf-8'))
-            time_db.put(bytes(identifier, encoding='utf-8'), bytes([30]))
+            time_db.put(bytes(identifier, encoding='utf-8'), bytes([0]))
             return json.dumps({'success': True}), 204
         
         except Exception as e:
