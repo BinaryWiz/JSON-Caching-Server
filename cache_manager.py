@@ -36,6 +36,7 @@ def start():
         Sends back the requested retailer data for the specific
         item model given
         """
+        
         try:
             item_model = request.args.get('item_model')
             stored_data = db.get(bytes(item_model, encoding='utf-8'))
@@ -55,6 +56,7 @@ def start():
         PUT request will have just the regular JSON response stored
         in the leveldb database
         """
+
         try:
             response = request.json
 
@@ -68,7 +70,18 @@ def start():
             return json.dumps({'success': False, 'message': str(e)}), 500
 
     elif request.method == "DELETE":
-        pass 
+        """
+        Given an identifier, delete the resource from 
+        the database
+        """
+
+        try: 
+            identifier = request.json['identifier']
+            db.delete(bytes(identifier, encoding='utf-8'))
+            return json.dumps({'success': True}), 200
+            
+        except Exception as e:
+            return json.dumps({'success': False, 'message': str(e)}), 500
 
 if __name__ == "__main__":
     if not os.path.exists(r'./databases'):
