@@ -26,7 +26,8 @@ cache_data {
 }
 """
 
-db = None
+request_db = None
+time_db = None
 app = Flask(__name__)
 
 @app.route('/', methods=['PUT', 'GET', 'DELETE'])
@@ -39,11 +40,15 @@ def start():
         
         try:
             item_model = request.args.get('item_model')
-            stored_data = db.get(bytes(item_model, encoding='utf-8'))
+            stored_data = request_db.get(bytes(item_model, encoding='utf-8'))
 
             # Must use [2:-1] on the string because the beginning
             # of the string has 'b and the end has '
             # In order for it to be a valid dictionary, must remove them
+
+            time_bytes = time_db.get(bytes(item_model, encoding='utf-8'))
+
+            print(int.from_bytes(time_bytes, byteorder='big'))
             stored_data = json.loads(str(stored_data)[2:-1])
             return {'success': True, 'data': stored_data}, 200
 
@@ -62,7 +67,8 @@ def start():
 
             # The key that will be stored in the database
             identifier = response['identifier']
-            db.put(bytes(identifier, encoding='utf-8'), bytes(json.dumps(response), encoding='utf-8'))
+            request_db.put(bytes(identifier, encoding='utf-8'), bytes(json.dumps(response), encoding='utf-8'))
+            time_db.put(bytes(identifier, encoding='utf-8'), bytes([30]))
             return json.dumps({'success': True}), 204
         
         except Exception as e:
@@ -77,7 +83,7 @@ def start():
 
         try: 
             identifier = request.json['identifier']
-            db.delete(bytes(identifier, encoding='utf-8'))
+            request_db.delete(bytes(identifier, encoding='utf-8'))
             return json.dumps({'success': True}), 200
             
         except Exception as e:
@@ -87,5 +93,6 @@ if __name__ == "__main__":
     if not os.path.exists(r'./databases'):
         os.makedirs(r'./databases')
 
-    db = plyvel.DB('databases/db', create_if_missing=True)
+    request_db = plyvel.DB('databases/request_db', create_if_missing=True)
+    time_db = plyvel.DB('databases/time_db', create_if_missing=True)
     app.run(host="localhost", port=5001, threaded=True)
