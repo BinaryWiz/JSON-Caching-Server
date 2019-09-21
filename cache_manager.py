@@ -10,7 +10,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 request_db = None
 time_db = None
 app = Flask(__name__)
-TIME_DELETIION = 60
+TIME_DELETIION = 30
 
 def time_updater():
     """
