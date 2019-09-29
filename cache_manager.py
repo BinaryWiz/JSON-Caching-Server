@@ -15,7 +15,7 @@ request_db = plyvel.DB('databases/request_db', create_if_missing=True)
 time_db = plyvel.DB('databases/time_db', create_if_missing=True)
 
 app = Flask(__name__)
-TIME_DELETIION = 1
+TIME_DELETIION = 30
 TIME_MINUTES = 1
 
 def time_updater():
