@@ -15,7 +15,8 @@ request_db = plyvel.DB('databases/request_db', create_if_missing=True)
 time_db = plyvel.DB('databases/time_db', create_if_missing=True)
 
 app = Flask(__name__)
-TIME_DELETIION = 30
+TIME_DELETIION = 1
+TIME_MINUTES = 1
 
 def time_updater():
     """
@@ -25,21 +26,20 @@ def time_updater():
     """
     try:
         for key, value in time_db:
+            # Adds to the time_db via the amount of time defined in TIME_MINUTES
+            time_db.put(key, bytes([int.from_bytes(value, byteorder='big') + 
+                int.from_bytes([TIME_MINUTES], byteorder='big')])) 
+            
             if value == bytes([TIME_DELETIION]):
                 time_db.delete(key)
-                requests.delete('http://localhost:5001/', json={'identifier': str(key)})
+                requests.delete('http://localhost:5001/', json={'identifier': key.decode('utf-8')})
 
-            else:
-                # Adds one using the bytes representation of integers
-                time_db.put(key, bytes([int.from_bytes(value, byteorder='big') + 
-                    int.from_bytes([1], byteorder='big')])) 
-    
     except Exception as e:
         print(str(e))
 
 # Schedules the time_updater function to run every minute
 sched = BackgroundScheduler(daemon=True)
-sched.add_job(time_updater,'interval',minutes=1)
+sched.add_job(time_updater,'interval',minutes=TIME_MINUTES)
 sched.start()
 
 @app.route('/', methods=['PUT', 'GET', 'DELETE'])
@@ -54,15 +54,17 @@ def start():
             item_model = request.args.get('item_model')
             stored_data = request_db.get(bytes(item_model, encoding='utf-8'))
 
-            # Must use [2:-1] on the string because the beginning
-            # of the string has 'b and the end has '
-            # In order for it to be a valid dictionary, must remove them
+            # If data was found, continue
+            if (stored_data != None):
+                # Must use [2:-1] on the string because the beginning
+                # of the string has 'b and the end has '
+                # In order for it to be a valid dictionary, must remove them
+                
+                stored_data = json.loads(str(stored_data)[2:-1])
+                return {'success': True, 'data': stored_data}, 200
 
-            time_bytes = time_db.get(bytes(item_model, encoding='utf-8'))
-
-            print(int.from_bytes(time_bytes, byteorder='big'))
-            stored_data = json.loads(str(stored_data)[2:-1])
-            return {'success': True, 'data': stored_data}, 200
+            else:
+                return json.dumps({'success': False}), 404
 
         except Exception as e:
             print(str(e))
@@ -75,7 +77,7 @@ def start():
         """
 
         try:
-            response = request.json
+            response = request.json['data']
 
             # The key that will be stored in the database
             identifier = response['identifier']
@@ -84,7 +86,6 @@ def start():
             return json.dumps({'success': True}), 204
         
         except Exception as e:
-            print('something')
             print(str(e))
             return json.dumps({'success': False, 'message': str(e)}), 500
 
@@ -96,7 +97,9 @@ def start():
 
         try: 
             identifier = request.json['identifier']
+            print(identifier)
             request_db.delete(bytes(identifier, encoding='utf-8'))
+
             return json.dumps({'success': True}), 200
             
         except Exception as e:
