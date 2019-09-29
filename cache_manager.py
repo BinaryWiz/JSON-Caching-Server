@@ -82,6 +82,8 @@ def start():
 
             # The key that will be stored in the database
             identifier = response['identifier']
+            response['success'] = True
+            
             request_db.put(bytes(identifier, encoding='utf-8'), bytes(json.dumps(response), encoding='utf-8'))
             time_db.put(bytes(identifier, encoding='utf-8'), bytes([0]))
             return json.dumps({'success': True}), 204
