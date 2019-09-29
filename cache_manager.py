@@ -61,7 +61,8 @@ def start():
                 # In order for it to be a valid dictionary, must remove them
                 
                 stored_data = json.loads(str(stored_data)[2:-1])
-                return {'success': True, 'data': stored_data}, 200
+                stored_data['success'] = True
+                return stored_data, 200
 
             else:
                 return json.dumps({'success': False}), 404
@@ -77,7 +78,7 @@ def start():
         """
 
         try:
-            response = request.json['data']
+            response = request.json
 
             # The key that will be stored in the database
             identifier = response['identifier']
