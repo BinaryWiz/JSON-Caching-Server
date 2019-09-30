@@ -83,7 +83,7 @@ def start():
             # The key that will be stored in the database
             identifier = response['identifier']
             response['success'] = True
-            
+
             request_db.put(bytes(identifier, encoding='utf-8'), bytes(json.dumps(response), encoding='utf-8'))
             time_db.put(bytes(identifier, encoding='utf-8'), bytes([0]))
             return json.dumps({'success': True}), 204
@@ -107,6 +107,18 @@ def start():
             
         except Exception as e:
             return json.dumps({'success': False, 'message': str(e)}), 500
+
+@app.route('/check', methods=['GET'])
+def check_database():
+    if request.method == 'GET':
+        try:
+            for key, value in request_db:
+                print(key, value)
+            
+            return json.dumps({'success': True}), 200
+
+        except Exception:
+            return json.dumps({'success': False}), 404
 
 if __name__ == "__main__":
     app.run(host="localhost", port=5001, threaded=True)

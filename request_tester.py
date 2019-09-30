@@ -18,3 +18,7 @@ while True:
         data = requests.delete("http://localhost:5001/", json={'identifier': 'BX80684I99900'})
         response = data.json()
         print(response)
+
+    elif user_input.lower() == "check":
+        data = requests.get("http://localhost:5001/check")
+        print(data.json())
