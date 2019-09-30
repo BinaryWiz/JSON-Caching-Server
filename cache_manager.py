@@ -113,11 +113,12 @@ def check_database():
     if request.method == 'GET':
         try:
             for key, value in request_db:
-                print(key, value)
+                print(key, value, int.from_bytes(time_db.get(key), byteorder='big'))
             
             return json.dumps({'success': True}), 200
 
-        except Exception:
+        except Exception as e:
+            print(str(e))
             return json.dumps({'success': False}), 404
 
 if __name__ == "__main__":
