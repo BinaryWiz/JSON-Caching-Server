@@ -5,7 +5,6 @@ import json
 import os
 import plyvel
 import requests
-from apscheduler.schedulers.background import BackgroundScheduler
 
 # Set up databases
 if not os.path.exists(r'./databases'):
@@ -15,32 +14,7 @@ request_db = plyvel.DB('databases/request_db', create_if_missing=True)
 time_db = plyvel.DB('databases/time_db', create_if_missing=True)
 
 app = Flask(__name__)
-TIME_DELETIION = 30
-TIME_MINUTES = 1
 
-def time_updater():
-    """
-    Updates how long each entry has been in the database.
-    Deletes after the amount of minutes have passed as
-    defined in TIME_DELETION
-    """
-    try:
-        for key, value in time_db:
-            # Adds to the time_db via the amount of time defined in TIME_MINUTES
-            time_db.put(key, bytes([int.from_bytes(value, byteorder='big') + 
-                int.from_bytes([TIME_MINUTES], byteorder='big')])) 
-            
-            if value == bytes([TIME_DELETIION]):
-                time_db.delete(key)
-                requests.delete('http://localhost:5001/', json={'identifier': key.decode('utf-8')})
-
-    except Exception as e:
-        print(str(e))
-
-# Schedules the time_updater function to run every minute
-sched = BackgroundScheduler(daemon=True)
-sched.add_job(time_updater,'interval',minutes=TIME_MINUTES)
-sched.start()
 
 @app.route('/', methods=['PUT', 'GET', 'DELETE'])
 def start():
@@ -108,6 +82,7 @@ def start():
         except Exception as e:
             return json.dumps({'success': False, 'message': str(e)}), 500
 
+
 @app.route('/check', methods=['GET'])
 def check_database():
     if request.method == 'GET':
@@ -120,6 +95,33 @@ def check_database():
         except Exception as e:
             print(str(e))
             return json.dumps({'success': False}), 404
+
+TIME_DELETIION = 30
+TIME_MINUTES = 1
+
+
+@app.route('/update', methods=['GET'])
+def time_updater():
+    """
+    Updates how long each entry has been in the database.
+    Deletes after the amount of minutes have passed as
+    defined in TIME_DELETION
+    """
+    try:
+        TIME_MINUTES = int(request.args.get('mins'))  
+        for key, value in time_db:
+            # Adds to the time_db via the amount of time defined in TIME_MINUTES
+            time_db.put(key, bytes([int.from_bytes(value, byteorder='big') + 
+                int.from_bytes([TIME_MINUTES], byteorder='big')])) 
+            
+            if value == bytes([TIME_DELETIION]):
+                time_db.delete(key)
+                requests.delete('http://localhost:5001/', json={'identifier': key.decode('utf-8')})
+        
+        return json.dumps({'success': True}), 204
+
+    except Exception as e:
+        print(str(e))
 
 if __name__ == "__main__":
     app.run(host="localhost", port=5001, threaded=True)
