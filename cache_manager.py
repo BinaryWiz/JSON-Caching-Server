@@ -25,9 +25,8 @@ def start():
         """
         
         try:
-            item_model = request.args.get('item_model')
+            item_model = request.args.get('item_model')            
             stored_data = request_db.get(bytes(item_model, encoding='utf-8'))
-
             # If data was found, continue
             if (stored_data != None):
                 # Must use [2:-1] on the string because the beginning
@@ -98,7 +97,6 @@ def check_database():
 
 TIME_DELETIION = 30
 TIME_MINUTES = 1
-
 
 @app.route('/update', methods=['GET'])
 def time_updater():
