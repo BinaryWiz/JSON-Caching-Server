@@ -1,3 +1,4 @@
 .vscode/
 databases/
 time_updater.sh
+venv/

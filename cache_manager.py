@@ -25,8 +25,8 @@ def start():
         """
         
         try:
-            item_model = request.args.get('item_model')            
-            stored_data = request_db.get(bytes(item_model, encoding='utf-8'))
+            identifier = request.args.get('identifier')
+            stored_data = request_db.get(bytes(identifier, encoding='utf-8'))
             # If data was found, continue
             if (stored_data != None):
                 # Must use [2:-1] on the string because the beginning
