@@ -24,6 +24,7 @@ This application has two parts:
 The seperate process uses Systemd to enable it on startup and for more organization (status, start, stop, restart, etc.). Here is how you set it up:
 * *Make sure you have Python 3 with `apscheduler` installed
 * Edit the `run.sh` to have your directory in it
+* *Make sure that the `run.sh` is executable by running `chmod +x run.sh`
 * Create a file called a `.service` in `/lib/systemd/system` file and add put in it:
 ```
 [Unit]
