@@ -1,10 +1,11 @@
 from flask import Flask, request
-import flask
-import time
 import json
 import os
 import plyvel
 import requests
+
+# Time after which an entry in the database will be deleted
+TIME_DELETIION = 30
 
 # Set up databases
 if not os.path.exists(r'./databases'):
@@ -15,15 +16,13 @@ time_db = plyvel.DB('databases/time_db', create_if_missing=True)
 
 app = Flask(__name__)
 
-
 @app.route('/', methods=['PUT', 'GET', 'DELETE'])
 def start():
     if request.method == "GET":
-        """
+        '''
         Sends back the requested retailer data for the specific
-        item model given
-        """
-        
+       identifier given
+        '''
         try:
             identifier = request.args.get('identifier')
             stored_data = request_db.get(bytes(identifier, encoding='utf-8'))
@@ -45,11 +44,9 @@ def start():
             return json.dumps({'success': False}), 404
 
     elif request.method == "PUT":
-        """
-        PUT request will have just the regular JSON response stored
-        in the leveldb database
-        """
-
+        '''
+        PUT request will have just the regular JSON response stored in the LevelDB database
+        '''
         try:
             response = request.json
 
@@ -66,12 +63,10 @@ def start():
             return json.dumps({'success': False, 'message': str(e)}), 500
 
     elif request.method == "DELETE":
-        """
-        Given an identifier, delete the resource from 
-        the database
-        """
-
-        try: 
+        '''
+        Given an identifier, delete the resource from the database
+        '''
+        try:
             identifier = request.json['identifier']
             print(identifier)
             request_db.delete(bytes(identifier, encoding='utf-8'))
@@ -84,6 +79,9 @@ def start():
 
 @app.route('/check', methods=['GET'])
 def check_database():
+    '''
+    Prints all the keys and values in the database.
+    '''
     if request.method == 'GET':
         try:
             for key, value in request_db:
@@ -95,22 +93,18 @@ def check_database():
             print(str(e))
             return json.dumps({'success': False}), 404
 
-TIME_DELETIION = 30
-TIME_MINUTES = 1
-
 @app.route('/update', methods=['GET'])
 def time_updater():
-    """
+    '''
     Updates how long each entry has been in the database.
     Deletes after the amount of minutes have passed as
     defined in TIME_DELETION
-    """
+    '''
     try:
-        TIME_MINUTES = int(request.args.get('mins'))  
+        minute_to_add = int(request.args.get('mins'))  
         for key, value in time_db:
-            # Adds to the time_db via the amount of time defined in TIME_MINUTES
             time_db.put(key, bytes([int.from_bytes(value, byteorder='big') + 
-                int.from_bytes([TIME_MINUTES], byteorder='big')])) 
+                int.from_bytes([minute_to_add], byteorder='big')])) 
             
             if value == bytes([TIME_DELETIION]):
                 time_db.delete(key)

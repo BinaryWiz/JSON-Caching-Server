@@ -1,4 +1,6 @@
 .vscode/
+__pycache__/
 databases/
 time_updater.sh
 venv/
+venv_old/
